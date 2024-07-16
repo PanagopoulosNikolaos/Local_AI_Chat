@@ -8,6 +8,19 @@ import markdown2
 
 class ChatGUI(QMainWindow):
     def __init__(self):
+        """
+        Initializes the ChatGUI object.
+
+        This method is the constructor of the ChatGUI class. It sets up the basic
+        properties and layout of the chat GUI window. It also initializes the
+        `current_model` and `current_chat` attributes to None.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
         super().__init__()
         self.setWindowTitle("GPT4ALL Chat")
         self.setGeometry(100, 100, 800, 600)
@@ -29,6 +42,17 @@ class ChatGUI(QMainWindow):
         self.load_chats()
 
     def setup_left_panel(self):
+        """
+        Sets up the left panel of the chat GUI window.
+
+        This method initializes the left panel by creating a QWidget and setting up a QVBoxLayout. It adds a spacer item at the top, a QListWidget for chat lists, and a QPushButton for creating a new chat. The width and height of the left panel are fixed, and it is added to the main layout of the window.
+
+        Parameters:
+            self: The ChatGUI object.
+
+        Returns:
+            None
+        """
         left_panel = QWidget()
         left_layout = QVBoxLayout(left_panel)
 
@@ -58,6 +82,17 @@ class ChatGUI(QMainWindow):
         
 
     def setup_right_panel(self):
+        """
+        Sets up the right panel of the chat GUI window.
+
+        This method initializes the right panel by creating a QWidget and setting up a QVBoxLayout. It adds a top bar with a model dropdown and an eject button. It then adds a chat display QTextEdit with specific style settings. It further includes a user input QTextEdit, a max tokens QSlider, and a send button QPushButton to the layout.
+
+        Parameters:
+            self: The ChatGUI object.
+
+        Returns:
+            None
+        """
         right_panel = QWidget()
         right_layout = QVBoxLayout(right_panel)
 
@@ -100,6 +135,22 @@ class ChatGUI(QMainWindow):
         self.layout.addWidget(right_panel)
 
     def load_models(self):
+        """
+        Load the models from the "./MODELS" directory and populate the model dropdown.
+
+        This function checks if the "./MODELS" directory exists. If it does not, it prints an error message and returns.
+
+        If the directory exists, it retrieves a list of files with the ".gguf" extension using the `os.listdir()` function.
+        It then clears the existing items in the `model_dropdown` widget and adds the list of models to it using the `addItems()` method.
+
+        Finally, it connects the `currentIndexChanged` signal of the `model_dropdown` widget to the `load_model` function.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
         if not os.path.exists("./MODELS"):
             print("Error: MODELS folder not found.")
             return
@@ -111,6 +162,16 @@ class ChatGUI(QMainWindow):
         self.model_dropdown.currentIndexChanged.connect(self.load_model)
 
     def load_model(self, index):
+        """
+        Loads a model based on the provided index.
+
+        Parameters:
+            self (object): The instance of the class.
+            index (int): The index of the model to load.
+
+        Returns:
+            None
+        """
         if index < 0:
             return
         model_name = self.model_dropdown.currentText()
@@ -126,16 +187,41 @@ class ChatGUI(QMainWindow):
             self.current_model = None
 
     def eject_model(self):
+        """
+        Set the current_model attribute to None and set the current index of the model_dropdown to -1.
+        """
         self.current_model = None
         self.model_dropdown.setCurrentIndex(-1)
 
     def load_chats(self):
+        """
+        Load the chats from the "./Chat_Data" directory and populate the chat list.
+
+        This function checks if the "./Chat_Data" directory exists. If it does not, it creates the directory using `os.makedirs()`.
+
+        It then retrieves a list of files with the ".md" extension using the `os.listdir()` function.
+        The list of chats is created by filtering the files based on the ".md" extension.
+
+        Finally, it adds the list of chats to the `chat_list` widget using the `addItems()` method.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
         if not os.path.exists("./Chat_Data"):
             os.makedirs("./Chat_Data")
         chats = [f for f in os.listdir("./Chat_Data") if f.endswith(".md")]
         self.chat_list.addItems(chats)
 
     def create_new_chat(self):
+        """
+        Creates a new chat by generating a unique filename for the chat and writing a default header to the file.
+        The chat is then added to the chat list and loaded into the chat display.
+
+        :return: None
+        """
         chat_name = f"chat_{len(os.listdir('./Chat_Data')) + 1}.md"
         with open(f"./Chat_Data/{chat_name}", "w") as f:
             f.write("# New Chat\n\n")
@@ -143,6 +229,11 @@ class ChatGUI(QMainWindow):
         self.load_chat(self.chat_list.item(self.chat_list.count() - 1))
 
     def load_chat(self, item):
+        """
+        Loads a chat based on the provided item, reads the content from the corresponding file in the Chat_Data directory,
+        converts the content to HTML using markdown2, and sets the HTML content to the chat_display widget. 
+        If a current model is available, it resets the chat session.
+        """
         self.current_chat = item.text()
         with open(f"./Chat_Data/{self.current_chat}", "r") as f:
             content = f.read()
@@ -153,6 +244,13 @@ class ChatGUI(QMainWindow):
             print("Chat session reset for loaded chat")
 
     def send_message(self):
+        """
+        Sends a message in the chat interface. 
+        Checks if a model and chat are selected, retrieves the user message, 
+        saves the user message to the chat log, generates a response using the model, 
+        and saves the response to the chat log. 
+        If an exception occurs during response generation, displays an error message. 
+        """
         if not self.current_model:
             print("No model is currently loaded.")  # Debug print
             QMessageBox.warning(self, "No Model Loaded", "Please select and load a model before sending a message.")
