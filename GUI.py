@@ -4,6 +4,8 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHB
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QSlider
 from gpt4all import GPT4All
+import mistune
+
 import markdown2
 
 class ChatGUI(QMainWindow):
@@ -231,17 +233,18 @@ class ChatGUI(QMainWindow):
     def load_chat(self, item):
         """
         Loads a chat based on the provided item, reads the content from the corresponding file in the Chat_Data directory,
-        converts the content to HTML using markdown2, and sets the HTML content to the chat_display widget. 
+        converts the content to HTML using mistune, and sets the HTML content to the chat_display widget. 
         If a current model is available, it resets the chat session.
         """
         self.current_chat = item.text()
         with open(f"./Chat_Data/{self.current_chat}", "r") as f:
             content = f.read()
-        html_content = markdown2.markdown(content)
+        html_content = mistune.markdown(content)
         self.chat_display.setHtml(html_content)
         if self.current_model:
             self.chat_session = self.current_model.chat_session()
             print("Chat session reset for loaded chat")
+
 
     def send_message(self):
         """
@@ -268,11 +271,7 @@ class ChatGUI(QMainWindow):
         with open(f"./Chat_Data/{self.current_chat}", "a") as f:
             f.write(f"\n\n**User:** {user_message}\n\n")
 
-        max_tokens = getattr(self, 'max_tokens_slider', None)
-        if max_tokens is None:
-            max_tokens = 2048  # Default value if slider is not available
-        else:
-            max_tokens = max_tokens.value()
+        max_tokens = self.max_tokens_slider.value() if self.max_tokens_slider else 2048 
 
         try:
             with self.current_model.chat_session():
@@ -284,9 +283,11 @@ class ChatGUI(QMainWindow):
             return
 
         with open(f"./Chat_Data/{self.current_chat}", "a") as f:
-            f.write(f"**Assistant:**\n {response}\n\n")
+            f.write(f"**Assistant:**\n```\n{response}\n```\n\n")
 
         self.load_chat(self.chat_list.findItems(self.current_chat, Qt.MatchExactly)[0])
+
+
 
 
 if __name__ == "__main__":
