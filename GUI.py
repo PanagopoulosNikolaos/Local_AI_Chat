@@ -283,7 +283,7 @@ class ChatGUI(QMainWindow):
             return
 
         with open(f"./Chat_Data/{self.current_chat}", "a") as f:
-            f.write(f"**Assistant:**\n```\n{response}\n```\n\n")
+            f.write(f"**Assistant:**\n\n{response}\n\n\n")
 
         self.load_chat(self.chat_list.findItems(self.current_chat, Qt.MatchExactly)[0])
 
